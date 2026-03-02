@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - GET YOUR SEAT.</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+font-family:'Poppins',sans-serif;
+background:#0f2027;
+color:white;
+overflow-x:hidden;
+}
+
+/* NAVBAR */
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 60px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+}
+nav h2{
+font-family:'Archivo Black';
+}
+.logout{
+background:#ff416c;
+border:none;
+padding:10px 20px;
+border-radius:30px;
+cursor:pointer;
+color:white;
+}
+
+/* HEADER */
+.header{
+padding:40px 60px;
+}
+.header h1{
+font-size:40px;
+}
+.search-bar{
+margin-top:20px;
+}
+.search-bar input{
+padding:10px;
+width:300px;
+border-radius:10px;
+border:none;
+}
+
+/* EVENTS GRID */
+.events{
+padding:40px 60px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:30px;
+}
+
+.card{
+background:rgba(255,255,255,0.08);
+padding:20px;
+border-radius:20px;
+transition:0.3s;
+}
+.card:hover{
+transform:translateY(-10px);
+}
+.card img{
+width:100%;
+border-radius:15px;
+}
+.card h3{
+margin:10px 0;
+}
+.card p{
+font-size:14px;
+opacity:0.9;
+}
+.book-btn{
+margin-top:10px;
+background:linear-gradient(45deg,#ff416c,#ff4b2b);
+border:none;
+padding:10px 20px;
+border-radius:30px;
+cursor:pointer;
+color:white;
+}
+
+/* MODAL */
+.modal{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+z-index:2000;
+}
+
+.modal-content{
+background:white;
+color:black;
+padding:30px;
+width:380px;
+border-radius:20px;
+text-align:center;
+animation:pop 0.3s ease;
+}
+
+@keyframes pop{
+from{transform:scale(0.8);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+border:1px solid #ddd;
+}
+
+.submit-btn{
+background:#0f2027;
+color:white;
+width:100%;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
+.close{
+position:absolute;
+top:20px;
+right:30px;
+font-size:25px;
+cursor:pointer;
+color:white;
+}
+
+/* SUCCESS POPUP */
+.success{
+position:fixed;
+bottom:30px;
+right:30px;
+background:#2af598;
+color:black;
+padding:15px 25px;
+border-radius:30px;
+display:none;
+}
+
+@media(max-width:768px){
+nav,.header,.events{padding:20px;}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+<h2>GET YOUR SEAT</h2>
+<button class="logout" onclick="logout()">Logout</button>
+</nav>
+
+<div class="header">
+<h1>Welcome Back 👋</h1>
+<div class="search-bar">
+<input type="text" placeholder="Search events..." onkeyup="searchEvents(this.value)">
+</div>
+</div>
+
+<div class="events" id="eventContainer">
+
+<div class="card">
+<img src="https://source.unsplash.com/400x300/?concert">
+<h3>Music Concert</h3>
+<p data-seats="120">Seats Available: 120</p>
+<button class="book-btn" onclick="openBooking(this.parentElement)">Book Now</button>
+</div>
+
+<div class="card">
+<img src="https://source.unsplash.com/400x300/?conference">
+<h3>Tech Conference</h3>
+<p data-seats="80">Seats Available: 80</p>
+<button class="book-btn" onclick="openBooking(this.parentElement)">Book Now</button>
+</div>
+
+<div class="card">
+<img src="https://source.unsplash.com/400x300/?sports">
+<h3>Sports Event</h3>
+<p data-seats="200">Seats Available: 200</p>
+<button class="book-btn" onclick="openBooking(this.parentElement)">Book Now</button>
+</div>
+
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal" id="bookingModal">
+<div class="modal-content">
+<h2 id="eventTitle"></h2>
+<p>Available Seats: <span id="availableSeats"></span></p>
+
+<select id="seatType">
+<option value="500">Regular - ₹500</option>
+<option value="1000">VIP - ₹1000</option>
+</select>
+
+<input type="number" id="seatInput" min="1" placeholder="Number of seats" oninput="calculateTotal()">
+
+<p>Total Price: ₹<span id="totalPrice">0</span></p>
+
+<button class="submit-btn" onclick="confirmBooking()">Confirm Booking</button>
+<button onclick="closeBooking()" style="margin-top:10px;">Cancel</button>
+</div>
+<span class="close" onclick="closeBooking()">&times;</span>
+</div>
+
+<div class="success" id="successPopup">🎉 Booking Confirmed!</div>
+
+<script>
+let selectedCard = null;
+
+function openBooking(card){
+selectedCard = card;
+const eventName = card.querySelector("h3").innerText;
+const seatElement = card.querySelector("p");
+const seatsAvailable = parseInt(seatElement.dataset.seats);
+
+document.getElementById("eventTitle").innerText = eventName;
+document.getElementById("availableSeats").innerText = seatsAvailable;
+document.getElementById("seatInput").max = seatsAvailable;
+document.getElementById("seatInput").value = "";
+document.getElementById("totalPrice").innerText = 0;
+
+document.getElementById("bookingModal").style.display="flex";
+}
+
+function closeBooking(){
+document.getElementById("bookingModal").style.display="none";
+}
+
+function calculateTotal(){
+const seatCount = parseInt(document.getElementById("seatInput").value) || 0;
+const pricePerSeat = parseInt(document.getElementById("seatType").value);
+document.getElementById("totalPrice").innerText = seatCount * pricePerSeat;
+}
+
+function confirmBooking(){
+const seatCount = parseInt(document.getElementById("seatInput").value);
+const seatElement = selectedCard.querySelector("p");
+let availableSeats = parseInt(seatElement.dataset.seats);
+
+if(!seatCount || seatCount <= 0 || seatCount > availableSeats){
+alert("Invalid seat count!");
+return;
+}
+
+availableSeats -= seatCount;
+seatElement.dataset.seats = availableSeats;
+seatElement.innerText = "Seats Available: " + availableSeats;
+
+saveBooking(selectedCard.querySelector("h3").innerText, seatCount);
+
+closeBooking();
+showSuccess();
+}
+
+function showSuccess(){
+const popup = document.getElementById("successPopup");
+popup.style.display="block";
+setTimeout(()=>{popup.style.display="none";},3000);
+}
+
+function saveBooking(eventName, seats){
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+bookings.push({event:eventName, seats:seats, date:new Date().toLocaleString()});
+localStorage.setItem("bookings", JSON.stringify(bookings));
+}
+
+function searchEvents(query){
+const cards = document.querySelectorAll(".card");
+cards.forEach(card=>{
+const title = card.querySelector("h3").innerText.toLowerCase();
+card.style.display = title.includes(query.toLowerCase()) ? "block" : "none";
+});
+}
+
+function logout(){
+window.location.href="index.html";
+}
+</script>
+
+</body>
+</html>

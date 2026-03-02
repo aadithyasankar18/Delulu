@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GET YOUR SEAT</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
+body{
+font-family:'Poppins',sans-serif;
+background:#0f2027;
+color:white;
+overflow-x:hidden;
+}
+
+/* NAVBAR */
+nav{
+position:fixed;
+top:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 60px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(15px);
+z-index:1000;
+}
+nav h2{
+font-family:'Archivo Black';
+}
+nav ul{
+display:flex;
+gap:30px;
+list-style:none;
+}
+nav ul li{
+cursor:pointer;
+transition:0.3s;
+}
+nav ul li:hover{
+color:#ff4b2b;
+}
+
+/* HERO */
+.hero{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:0 20px;
+}
+.hero h1{
+font-family:'Archivo Black';
+font-size:80px;
+letter-spacing:5px;
+}
+.hero p{
+margin-top:20px;
+font-size:20px;
+opacity:0.8;
+}
+.buttons{margin-top:40px;}
+button{
+padding:15px 40px;
+margin:10px;
+border:none;
+border-radius:50px;
+font-weight:600;
+cursor:pointer;
+transition:0.4s;
+}
+.login-btn{background:white;color:#0f2027;}
+.signup-btn{background:linear-gradient(45deg,#ff416c,#ff4b2b);color:white;}
+button:hover{transform:translateY(-5px);box-shadow:0 15px 30px rgba(0,0,0,0.4);}
+
+/* MODAL */
+.modal{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+z-index:2000;
+}
+.modal-content{
+background:white;
+color:black;
+padding:40px;
+width:350px;
+border-radius:20px;
+position:relative;
+}
+input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+border:1px solid #ddd;
+}
+.submit-btn{
+background:#0f2027;
+color:white;
+width:100%;
+}
+.close{
+position:absolute;
+top:15px;
+right:20px;
+font-size:25px;
+cursor:pointer;
+color:black;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+<h2>GET YOUR SEAT</h2>
+<ul>
+<li onclick="openLogin()">Login</li>
+</ul>
+</nav>
+
+<div class="hero">
+<h1>GET YOUR SEAT</h1>
+<p>BOOK YOUR SEATS NOW!!!</p>
+<div class="buttons">
+<button class="login-btn" onclick="openLogin()">Login</button>
+<button class="signup-btn" onclick="openSignup()">Sign Up</button>
+</div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
+<div class="modal-content">
+<span class="close" onclick="closeLogin()">&times;</span>
+<h2>Login</h2>
+<input type="text" id="loginUsername" placeholder="Username">
+<input type="password" id="loginPassword" placeholder="Password">
+<button class="submit-btn" onclick="login()">Login</button>
+</div>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div class="modal" id="signupModal">
+<div class="modal-content">
+<span class="close" onclick="closeSignup()">&times;</span>
+<h2>Sign Up</h2>
+<input type="text" id="signupName" placeholder="Full Name">
+<input type="text" id="signupUsername" placeholder="Username">
+<input type="password" id="signupPassword" placeholder="Enter Password">
+<input type="password" id="signupConfirmPassword" placeholder="Confirm Password">
+<button class="submit-btn" onclick="signup()">Sign Up</button>
+</div>
+</div>
+
+<script>
+
+/* ---------------- MODAL FUNCTIONS ---------------- */
+
+function openLogin(){
+    document.getElementById("loginModal").style.display="flex";
+}
+
+function closeLogin(){
+    document.getElementById("loginModal").style.display="none";
+}
+
+function openSignup(){
+    document.getElementById("signupModal").style.display="flex";
+}
+
+function closeSignup(){
+    document.getElementById("signupModal").style.display="none";
+}
+
+/* ---------------- SIGNUP ---------------- */
+
+async function signup() {
+    const name = document.getElementById("signupName").value;
+    const username = document.getElementById("signupUsername").value;
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("signupConfirmPassword").value;
+
+    if (!name || !username || !password || !confirmPassword) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert("Passwords do not match");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                username: username,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Signup successful!");
+            closeSignup();
+            openLogin();
+        } else {
+            alert(data.detail);
+        }
+
+    } catch (error) {
+        alert("Cannot connect to server. Is backend running?");
+    }
+}
+
+/* ---------------- LOGIN ---------------- */
+
+async function login() {
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem("user_id", data.user_id);
+            window.location.href = "dashboard.html";
+        } else {
+            alert(data.detail);
+        }
+
+    } catch (error) {
+        alert("Cannot connect to server. Is backend running?");
+    }
+}
+
+</script>
+
+</body>
+</html>
